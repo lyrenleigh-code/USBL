@@ -33,9 +33,12 @@ if wiki_changed:
         missing.append("wiki/log.md")
 
     if missing:
-        print(f"[HOOK BLOCKED] wiki/ 有变更，但以下文件未更新：{', '.join(missing)}")
-        print("请先更新这些文件再结束任务。")
-        sys.exit(1)
+        print(
+            f"[BLOCKED] wiki/ 有变更，但以下文件未更新：{', '.join(missing)}\n"
+            "请先更新这些文件再结束任务。",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
 print("✓ index/log 同步检查通过")
 sys.exit(0)

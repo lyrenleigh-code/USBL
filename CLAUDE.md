@@ -1,6 +1,6 @@
 # USBL 自定位系统算法项目
 
-> **Hub**: `D:\Claude\Ohmybrain` — 跨项目知识中心（查询领域知识/回流结论用 `/promote-answer`）
+> **Hub**: `D:\Claude\Ohmybrain` — 跨项目知识中心（查询领域知识/回流结论用 `/promote`）
 > **模板**: `D:\Claude\ohmybrain-core` — 项目模板源
 
 ## 项目概述
@@ -28,37 +28,81 @@
 ## 目录结构
 
 ```
-D:\TechReq\USBL\
+USBL/
 ├── CLAUDE.md                          # 本文件
 ├── TODO.md                            # 任务跟踪
-├── USBL自定位系统算法初步技术方案.docx    # 技术方案文档
-├── reference/                         # 参考文献 (4篇PDF)
-└── simulation/                        # MATLAB仿真环境
-    ├── config/usbl_config.m           # 全局参数配置 (改这里影响全局)
-    ├── core/                          # 基础模块
-    │   ├── create_uca5.m             # 五元圆阵模型
-    │   ├── steering_vector.m         # 导向向量
-    │   ├── gen_lfm.m                 # LFM信号生成
-    │   ├── matched_filter_lfm.m      # 匹配滤波
-    │   ├── simulate_channel.m        # 信道仿真
-    │   ├── ray_trace.m               # 射线追踪
-    │   ├── euler2rotmat.m            # 旋转矩阵
-    │   └── coordinate_transform.m    # 坐标变换链
-    ├── doa/                           # DOA估计算法
-    │   ├── doa_cbf.m                 # 常规波束形成
-    │   ├── doa_mvdr.m                # MVDR/Capon
-    │   ├── doa_music.m               # MUSIC
-    │   ├── doa_ml.m                  # 最大似然 (主力)
-    │   ├── doa_phase_compare.m       # 相位比较 (辅助)
-    │   ├── doa_uca_mode_music.m      # UCA模态MUSIC
-    │   └── compute_doa_crb.m         # CRB计算
-    ├── analysis/                      # 分析工具
-    │   ├── error_budget_analysis.m   # 误差分配
-    │   └── sensitivity_analysis.m    # 灵敏度分析
-    ├── run_doa_comparison.m           # DOA算法对比主脚本
-    ├── run_error_budget.m             # 误差分配主脚本
-    └── run_full_simulation.m          # 全链路信号级仿真
+├── raw/                               # 只读原始资料
+│   └── papers/                        # 9 篇参考论文 PDF
+├── wiki/                              # 项目知识层（14 页）
+│   ├── index.md                       # 页面索引
+│   ├── log.md                         # 操作日志
+│   ├── dashboard.md                   # 项目仪表盘
+│   ├── usbl-moc.md                    # 知识地图
+│   ├── concepts/                      # 概念页
+│   ├── topics/                        # 专题页（文献综述、研制计划）
+│   └── source-summaries/              # 论文摘要（9 篇）
+├── simulation/                        # MATLAB 仿真环境
+│   ├── config/usbl_config.m           # 全局参数配置
+│   ├── core/                          # 基础模块（阵列/信号/信道/坐标变换）
+│   ├── doa/                           # DOA 估计算法（7 种）
+│   ├── analysis/                      # 分析工具
+│   ├── run_doa_comparison.m           # DOA 算法对比主脚本
+│   ├── run_error_budget.m             # 误差分配主脚本
+│   └── run_full_simulation.m          # 全链路信号级仿真
+├── workflows/                         # 操作流程文档
+│   ├── engineering/                   # 开发闭环（spec→plan→implement→validate）
+│   └── knowledge/                     # 知识闭环（ingest→query→promote）
+├── specs/                             # 任务 spec（active/ + archive/）
+├── plans/                             # 实现计划
+├── scripts/                           # 自动化脚本
+├── .claude/                           # harness
+│   ├── settings.json                  # hooks 配置
+│   ├── rules/                         # 路径规则（raw/wiki/engineering/specs）
+│   ├── commands/                      # 用户命令（/ingest, /promote）
+│   └── skills/                        # 工作流技能
+└── .obsidian/                         # Obsidian vault 配置 + 模板
 ```
+
+## 两个闭环
+
+### 知识闭环
+
+```
+raw/ → /ingest → wiki/ → query → /promote → Ohmybrain Hub wiki/
+```
+
+### 开发闭环
+
+```
+01-spec → 02-plan → 03-implement(产出三件套) → 04-validate(验证+同步+归档+commit)
+```
+
+## 自动化保障（Hooks）
+
+| 时机 | 检查内容 | 脚本 |
+|------|---------|------|
+| PreToolUse（Edit/Write） | 阻断 raw/ 写入 | `scripts/check_raw_write.py`（stdin JSON + exit 2） |
+| PostToolUse（Edit/Write） | Wiki 结构快速检查 | `scripts/lint_wiki.py --quick` |
+| Stop | Wiki index/log 同步检查 | `scripts/check_index_log_sync.py` |
+| Stop | 任务完整性验证 | `scripts/validate_task.py` |
+
+## 路径规则（.claude/rules/）
+
+| 规则 | 触发路径 | 核心约束 |
+|------|---------|---------|
+| raw.md | `raw/**` | 只读，知识产出写 wiki/ |
+| wiki.md | `wiki/**` | 中文、frontmatter、必须同步 index+log |
+| engineering.md | `simulation/**`, `specs/**`, `plans/**` | 先 spec 再 code，统一接口，附带测试 |
+| specs.md | `specs/**`, `plans/**` | spec 命名规范，完成后归档 |
+
+## 常用命令
+
+| 命令 | 用途 |
+|------|------|
+| `/ingest` | 摄入 raw/ 资料到 wiki/（7 步流程） |
+| `/promote` | 回流跨项目结论到 Hub（5 步流程） |
+| `python scripts/lint_wiki.py` | Wiki 结构检查 |
+| `python scripts/sync_index.py` | 同步 index 页面计数 |
 
 ## 代码规范
 
@@ -71,6 +115,15 @@ D:\TechReq\USBL\
 
 ## 已知问题
 
-- `run_doa_comparison.m` 中 `caxis` 已被用户改为 `clim` (新版MATLAB兼容)
-- 射线追踪 `ray_trace.m` 在极端声速剖面下可能不收敛, 需要加迭代保护
-- 当前仿真未考虑多径效应, 后续需加入海面/海底反射模型
+| 问题 | 状态 | 说明 |
+|------|------|------|
+| `caxis` → `clim` | ✅已修复 | 新版MATLAB兼容 |
+| ray_trace.m 极端剖面不收敛 | 🔶待修复 | 需加迭代保护 |
+| 仿真未考虑多径 | 🔴待做 | 需加海面/海底反射模型 |
+
+## 项目内导航
+
+- **仪表盘**: `wiki/dashboard.md`
+- **知识地图**: `wiki/usbl-moc.md`
+- **文献综述**: `wiki/topics/usbl-literature-review.md`（9 篇论文）
+- **研制计划**: `wiki/topics/lr-usbl-development-plan.md`（四阶段路线图）
