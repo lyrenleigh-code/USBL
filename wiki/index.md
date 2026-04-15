@@ -1,7 +1,7 @@
 # USBL Wiki Index
 
-> 最后更新：2026-04-13
-> 页面总数：14
+> 最后更新：2026-04-15
+> 页面总数：15
 
 ## Concepts（概念页）
 
@@ -16,7 +16,8 @@
 - [dashboard](dashboard.md) — 项目仪表盘，模块状态、阶段进度、待办清单、里程碑
 - [usbl-moc](usbl-moc.md) — 项目知识地图，信号链路、代码地图、知识层导航
 - [usbl-literature-review](topics/usbl-literature-review.md) — 9 篇文献综述，六层研究体系，可复用技术清单
-- [lr-usbl-development-plan](topics/lr-usbl-development-plan.md) — 长程 USBL 研制四阶段计划，误差预算，任务清单
+- [lr-usbl-development-plan](topics/lr-usbl-development-plan.md) — 长程 USBL 研制五阶段计划，硬件并行线，11 项重难点，误差预算，任务清单
+- [usbl-hardware-spec](topics/usbl-hardware-spec.md) — 硬件自研专题：HW-1~HW-6 指标、BOM、外协清单、打压/标定流程
 
 ## Explorations（探索页）
 

@@ -1,96 +1,111 @@
-# USBL 自定位系统算法 — 任务跟踪
+# USBL 自定位系统算法 — 模块索引
 
-## 已完成
+> 本文件是**模块索引总览**。细粒度任务请到各模块 spec（`specs/active/<MOD>.md`）查看。
+>
+> 模块划分方案：方案 B（2026-04-15 确立）—— A 算法 / H 硬件 / M 测量校准 / S 系统，共 19 个模块。
 
-### Phase 0: 前期准备
-- [x] 参考文献收集 (4篇USBL相关PDF)
-- [x] 系统参数推演 (波长、基线比、模糊间距、波束宽度、链路预算)
-- [x] 全链路算法架构设计
+## 状态图例
 
-### Phase 1: 仿真环境搭建
-- [x] 系统参数配置 (`usbl_config.m`)
-- [x] 五元圆阵模型 (`create_uca5.m`, 含基线分析)
-- [x] 导向向量计算 (`steering_vector.m`)
-- [x] LFM信号生成 (`gen_lfm.m`)
-- [x] 匹配滤波 (`matched_filter_lfm.m`)
-- [x] 信道仿真 (`simulate_channel.m`, 含频域分数延迟)
-- [x] 射线追踪 (`ray_trace.m`, 分层等梯度模型)
-- [x] 坐标变换链 (`coordinate_transform.m` + `euler2rotmat.m`)
-- [x] SNR模型修正: 应答器模式改为单程TL
+- 🟢 已实现 / Done
+- 🟡 部分实现 / In-Progress
+- 🔴 未开始 / Draft
+- ⛔ 阻塞 / Blocked
 
-### Phase 1.5: DOA算法调研
-- [x] 少阵元DOA算法文献调研 (11种算法, 7大类)
-- [x] CBF实现 (`doa_cbf.m`)
-- [x] MVDR实现 (`doa_mvdr.m`)
-- [x] MUSIC实现 (`doa_music.m`, 含前后向平均)
-- [x] ML两级搜索实现 (`doa_ml.m`, 粗搜+细搜+插值)
-- [x] 相位比较法实现 (`doa_phase_compare.m`, 含解模糊)
-- [x] UCA模态MUSIC实现 (`doa_uca_mode_music.m`)
-- [x] CRB计算 (`compute_doa_crb.m`)
-- [x] DOA算法对比主脚本 (`run_doa_comparison.m`)
-- [x] 平面阵秩亏修复: 相位比较法改为xy分量最小二乘 + 单位球约束恢复u_z
-- [x] 算法选型结论: ML为主力, 相位比较为辅助
+## 算法线（A 系列）
 
-### Phase 1.5: 误差分析
-- [x] 系统级误差分配分析 (`error_budget_analysis.m`)
-- [x] 灵敏度分析 (`sensitivity_analysis.m`)
-- [x] 误差分配主脚本 (`run_error_budget.m`)
-- [x] 精度可达性论证: 全距离范围优于0.5%, 满足1%指标
+| 编号 | 模块 | 状态 | 里程碑 | Spec |
+|------|------|------|-------|------|
+| A1 | 信号与测距链路 | 🟡 | M1 | [A1](specs/active/A/A1-signal-range.md) |
+| A2 | DOA 估计套件 | 🟡 | M1/M2 | [A2](specs/active/A/A2-doa-estimation.md) |
+| A3 | 声速与声线跟踪 | 🟡 (极端剖面🔴) | M1/M2 | [A3](specs/active/A/A3-ray-tracing.md) |
+| A4 | 坐标变换与 iUSBL 解算 | 🔴 **文献空白** | M1 | [A4](specs/active/A/A4-coord-iusbl.md) |
+| A5 | 多潜标融合与 GDOP | 🔴 | M2 | [A5](specs/active/A/A5-multi-buoy-fusion.md) |
+| A6 | 组合导航 EKF/UKF | 🔴 | M4–M6 | [A6](specs/active/A/A6-nav-ekf.md) |
 
-### 文档输出
-- [x] 初步技术方案 (Word文档, 9章完整版)
+## 硬件线（H 系列，自研并行）
 
----
+| 编号 | 模块 | 状态 | 里程碑 | Spec |
+|------|------|------|-------|------|
+| H1 | 接收换能器 | 🔴 | HM1/HM2 | [H1](specs/active/H/H1-transducer.md) |
+| H2 | 五元 UCA 阵列封装 | 🔴 | HM3 | [H2](specs/active/H/H2-array-package.md) |
+| H3 | 应答器 | 🔴 | HM3 | [H3](specs/active/H/H3-transponder.md) |
+| H4 | 多通道采集电子 | 🔴 | HM2/HM4 | [H4](specs/active/H/H4-acquisition.md) |
+| H5 | 结构与水密 | 🔴 | HM3 | [H5](specs/active/H/H5-structure-sealing.md) |
+| H6 | 系统联调与干端软件 | 🔴 | HM4 | [H6](specs/active/H/H6-integration.md) |
 
-## 待完成
+## 测量与校准线（M 系列，横切算法+硬件）
 
-### Phase 2: 核心算法完善 (第2~4月)
-- [ ] DOA仿真对比跑通并出报告 (运行run_doa_comparison, 记录结果)
-- [ ] 全链路仿真跑通并出报告 (运行run_full_simulation, 验证端到端)
-- [ ] 误差分配仿真跑通并出报告 (运行run_error_budget, 生成图表)
-- [ ] ML算法优化: 加入多脉冲积累能力 (提升远距离SNR)
-- [ ] 相位比较法: 加入多频解模糊选项 (作为备选解模糊方案)
-- [ ] 匹配滤波加窗: 实现Hamming/Kaiser窗控制旁瓣 (抑制多径)
-- [ ] 声线修正迭代反演: 已知斜距+DOA反推目标真实位置
+| 编号 | 模块 | 状态 | 里程碑 | Spec |
+|------|------|------|-------|------|
+| M1 | 阵型几何标定 | 🔴 | HM3/M1 | [M1](specs/active/M/M1-array-geometry.md) |
+| M2 | 电声一致性标定 | 🔴 | HM3/HM4 | [M2](specs/active/M/M2-electroacoustic-consistency.md) |
+| M3 | 安装偏差校准 | 🔴 | M3 | [M3](specs/active/M/M3-install-calibration.md) |
+| M4 | 在线基线重构 | 🔴 | M4 | [M4](specs/active/M/M4-online-baseline-reconstruction.md) |
+| M5 | 年度复校 SOP | 🔴 | M6+ | [M5](specs/active/M/M5-periodic-recal-sop.md) |
 
-### Phase 3: 系统级算法 (第4~6月)
-- [ ] 多潜标融合定位算法 (`multi_buoy_solve.m`)
-- [ ] GDOP分析工具 (分析潜标几何构型对定位精度的影响)
-- [ ] 安装校准算法 — 离线走圆校准 (`install_calibration.m`)
-- [ ] 安装校准算法 — 在线自校准 (EKF状态扩展)
-- [ ] 导航滤波器 EKF (`ekf_navigation.m`)
-- [ ] 野值剔除模块 (SNR门限 + 速度约束 + 多基线一致性 + 多潜标交叉验证)
-- [ ] 平台运动补偿模块 (`motion_compensation.m`)
-- [ ] 辅助传感器融合接口 (深度、DVL、IMU、GPS)
+## 系统线（S 系列）
 
-### Phase 4: 性能验证 (第6~8月)
-- [ ] 蒙特卡洛仿真 (1000+次, 各距离/方向/海况)
-- [ ] 多径信道模型 (海面/海底反射)
-- [ ] 多径对DOA精度的影响分析
-- [ ] 灵敏度分析报告 (各参数误差贡献)
-- [ ] 全链路性能验证报告
-- [ ] 算法冻结, 接口协议文档
-
-### Phase 5: 工程化 (第8~10月)
-- [ ] 与采集系统接口定义 (数据格式、时间同步协议)
-- [ ] 与采集系统对接联调
-- [ ] 实采数据回放处理验证
-- [ ] C/C++移植可行性评估
-- [ ] 实时性优化 (查找表、网格降采样等)
-
-### Phase 6: 试验 (第10~12月)
-- [ ] 湖试方案设计
-- [ ] 湖试/海试
-- [ ] 校准航次执行 + 校准流程固化
-- [ ] 精度评估报告
-- [ ] 生产测试规范
-- [ ] 校准操作手册
+| 编号 | 模块 | 状态 | 里程碑 | Spec |
+|------|------|------|-------|------|
+| S1 | 仿真平台 | 🟡 | M1/M2 | [S1](specs/active/S/S1-simulation-platform.md) |
+| S2 | 试验平台 | 🔴 | M4–M6 | [S2](specs/active/S/S2-trial-platform.md) |
 
 ---
 
-## 技术债务 / 改进项
-- [ ] ray_trace.m 极端声速剖面下的迭代保护
-- [ ] simulate_channel.m 加入多径模型 (海面/海底反射)
-- [ ] doa_ml.m 加入自适应网格细化 (低SNR时扩大搜索范围)
-- [ ] 各DOA算法增加多信源支持 (为未来CDMA多目标同时定位预留)
-- [ ] 仿真环境增加平台运动轨迹仿真 (航迹+姿态随时间变化)
+## 里程碑映射速查
+
+### 算法里程碑
+- **M1** MATLAB 全链路仿真（<0.5%R）← A1+A2+A3+A4+S1
+- **M2** Monte Carlo N=1000（<1%R）← A5+S1
+- **M3** 校准仿真报告 ← M3
+- **M4** 湖试（2km）← H6+M3+A6+S2
+- **M5** 浅海（5km）← H6+A6+S2
+- **M6** 深海（10km）← 全部
+
+### 硬件里程碑
+- **HM1** 电声参数冻结（Phase 1 末）← H1
+- **HM2** 换能器样品+采集电子原型（Phase 2 末）← H1+H4
+- **HM3** 阵列整机+应答器样机（Phase 3 末）← H2+H3+H5+M1+M2
+- **HM4** 全系统联调通过（Phase 4 末）← H6+M2
+- **HM5** 现场可用系统（Phase 5）← S2
+
+---
+
+## 当前焦点（Phase 1 + Phase 1H）
+
+### P0 算法侧（阻塞 M1）
+- **A4** iUSBL 逆向坐标变换（文献空白，核心阻塞项）
+- **A3** 声线跟踪极端剖面迭代保护
+- **S1** 全链路仿真集成 + Monte Carlo 框架
+
+### P0 硬件侧（阻塞 HM1）
+- **H1** 换能器方案对比 + 匹配层仿真 + 电声参数冻结
+- **H3** 应答器链路预算反推与方案
+- **H4** ADC/前放/FPGA 选型
+
+### P1
+- **A1** 改进 GCC + 匹配滤波加窗
+- **A2** 基线分解法 + ML 多脉冲积累
+- **H2** 阵型公差分析
+- **H4** 采集电子详细设计
+
+---
+
+## 技术债务 / 改进项（跨模块）
+
+- A3 `ray_trace.m` 极端剖面不收敛 → 见 [A3](specs/active/A/A3-ray-tracing.md)
+- S1 `simulate_channel.m` 缺多径模型 → 见 [S1](specs/active/S/S1-simulation-platform.md)
+- A2 DOA 算法多信源支持（CDMA 预留）→ 见 [A2](specs/active/A/A2-doa-estimation.md)
+- S1 平台运动轨迹仿真 → 见 [S1](specs/active/S/S1-simulation-platform.md)
+
+---
+
+## 工作流
+
+所有模块遵循 `workflows/engineering/`：
+1. `01-spec.md` — 已用本索引对应的 spec 卡承载
+2. `02-plan.md` — 每模块落地前先写 plan（放 `plans/<MOD>.md`）
+3. `03-implement.md` — 产出代码+测试
+4. `04-validate.md` — 验证+同步 wiki+归档+commit
+
+归档：模块完成后将 spec 卡移至 `specs/archive/`。
