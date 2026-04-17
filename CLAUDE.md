@@ -112,9 +112,20 @@ raw/ → /ingest → wiki/ → query → /promote → Ohmybrain Hub wiki/
 | 时机 | 检查内容 | 脚本 |
 |------|---------|------|
 | PreToolUse（Edit/Write） | 阻断 raw/ 写入 | `scripts/check_raw_write.py`（stdin JSON + exit 2） |
+| PreToolUse（Edit/Write） | 阻断 `<private>` 标签外泄到 wiki/ 等公开路径 | `scripts/check_private_tags.py` |
 | PostToolUse（Edit/Write） | Wiki 结构快速检查 | `scripts/lint_wiki.py --quick` |
 | Stop | Wiki index/log 同步检查 | `scripts/check_index_log_sync.py` |
 | Stop | 任务完整性验证 | `scripts/validate_task.py` |
+
+### Hook Exit Code Strategy
+
+| Exit | 含义 | 触发效果 |
+|------|------|---------|
+| **0** | 成功 / 优雅放行 | 继续执行，stdout 可见 |
+| **1** | 非阻断错误 | stderr 显示给用户，继续执行 |
+| **2** | 阻断错误 | stderr 喂回 Claude，阻止工具调用 |
+
+**设计原则**：宽松优先（未知输入 exit 0 放行）；阻断谨慎（仅安全性/一致性被破坏时 exit 2，如 `check_raw_write` / `check_private_tags` / `check_index_log_sync`）；非致命提醒用 exit 0 + stdout。Windows Terminal 下大量非 0 exit 可能导致 tab 累积。
 
 ## 路径规则（.claude/rules/）
 
