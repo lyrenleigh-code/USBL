@@ -52,9 +52,13 @@ promoted_topics: ["usbl-positioning"]
 ## 与本项目的关联
 
 本项目采用**逆向 USBL 自定位**模式：
-- 五元均匀圆阵 (UCA)，10 kHz，d/λ = 1.33
+- **笼式五元立体阵 CAGE5**（2026-04-19 从 UCA5 迁移；供应商 NeUB-816 产品）
+  - 结构：4 外围立柱 + 1 中央 + 上下双盘支撑
+  - 佐证来源：工程图 [[five-element-transducer-assembly-drawing-vA]] + 垂直指向性非对称 [[neub-816-test-report-260102]]
+- **12 kHz** 中心频率（λ = 12.5 cm；2026-04-19 从 10 kHz 更新，依据供应商测试报告）
 - 目标距离 ≥ 10 km，精度 < 1%R
-- ML 两级搜索作为主力 DOA 算法
+- ML 两级搜索作为主力 DOA 算法（立体阵下无需修改，`steering_vector` 数学通用）
+- 相位比较法走 3D LS 分支（立体阵专用，`doa_phase_compare.m` 2026-04-19 改造完成）
 
 ## 相关概念
 
@@ -67,6 +71,8 @@ promoted_topics: ["usbl-positioning"]
 
 - [[yumin-2006-lr-usbl]] — 系统研制全链路参考
 - [[dingjie-2020-compact-usbl]] — 基线分解算法 + 商用设备参数
+- [[five-element-transducer-assembly-drawing-vA]] — 本项目阵列的机械工程图（江苏水声，2026-04-15）
+- [[neub-816-test-report-260102]] — 本项目阵列的电声测试报告（江苏水声，2026-01-24）
 - [[yangbaoguo-2013-usbl-calibration]] — 安装校准理论
 - [[zhengcuie-usbl-docking]] — 对接应用 + 抗模糊
 - [[quzhenzhao-2024-usbl-precision]] — 多阵型融合

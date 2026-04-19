@@ -73,15 +73,16 @@ function results = sensitivity_analysis(cfg, array)
     ambiguity_deg = zeros(length(d_scan), 1);
 
     for di = 1:length(d_scan)
-        % 临时修改配置
+        % 临时修改配置；本扫描专用于 UCA 阵型敏感度（立体阵的敏感度
+        % 扫描维度更多，需另行设计）
         cfg_tmp = cfg;
+        cfg_tmp.array.type = 'UCA5';
         cfg_tmp.array.d = d_scan(di);
         cfg_tmp.array.R_a = d_scan(di) / (2*sin(pi/5));
-        array_tmp = struct();
-        array_tmp.N = 5;
-        R_a_tmp = cfg_tmp.array.R_a;
-        angles_tmp = (0:4)' * 2*pi/5;
-        array_tmp.pos = R_a_tmp * [cos(angles_tmp), sin(angles_tmp), zeros(5,1)];
+        cfg_tmp.array.aperture = 2 * cfg_tmp.array.R_a;
+        cfg_tmp.array.d_over_lambda = d_scan(di) / cfg.lambda;
+        % 用工厂统一构造阵列（输出含 is_planar / type 等字段）
+        evalc('array_tmp = create_array(cfg_tmp);');  % 静默 fprintf
 
         [crb_vs_d(di), ~] = compute_doa_crb(theta_test, phi_test, ...
             snr_test, array_tmp, cfg, 1);

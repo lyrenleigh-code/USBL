@@ -1,0 +1,69 @@
+# === 大文件 ===
+# 论文 PDF 原件（只保留 markdown 摘要）
+raw/papers/*.pdf
+
+# 视频和音频原件（只保留转录文本）
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.mp3
+*.wav
+*.m4a
+*.flac
+
+# 大型数据文件
+*.zip
+*.tar.gz
+*.7z
+*.rar
+
+# === 系统文件 ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === 编辑器 ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === Obsidian ===
+# 排除运行时状态和插件二进制，保留配置和模板
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/graph.json
+.obsidian/cache
+.obsidian/plugins/
+.trash/
+
+# === Git 嵌套仓库 ===
+raw/repos/
+
+# === Python ===
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# === Claude Code 本地覆盖 ===
+.claude/settings.local.json
+
+# === MATLAB 仿真产物（未交付的中间工作区/figs/mat）===
+*.mat
+simulation/figs/
+*.asv
+*.m~
+*.autosave
+
+# === 敏感文件 ===
+.env
+*.key
+*.pem
+credentials.*
+.mcp.json
+
+# === Word 临时锁文件 ===
+~$*

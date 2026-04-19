@@ -24,10 +24,12 @@ function array = create_uca5(cfg)
     pos(:,2) = R_a * sin(angles);  % y坐标
     pos(:,3) = 0;                  % z坐标 (同一平面)
 
-    array.pos    = pos;
-    array.N      = N;
-    array.R_a    = R_a;
-    array.angles = angles;
+    array.pos       = pos;
+    array.N         = N;
+    array.R_a       = R_a;
+    array.angles    = angles;
+    array.type      = 'UCA5';     % 供下游 DOA 算法 dispatch
+    array.is_planar = true;       % z 列全零，下游相位比较走 xy + 球约束分支
 
     %% 计算所有基线
     pairs = nchoosek(1:N, 2);  % C(5,2) = 10 对

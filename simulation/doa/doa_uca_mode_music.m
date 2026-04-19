@@ -16,6 +16,18 @@ function [theta_est, phi_est, P_spectrum] = doa_uca_mode_music(z, array, cfg, gr
 %
 %   [theta_est, phi_est, P_spectrum] = doa_uca_mode_music(z, array, cfg, grid, n_src)
 
+    % 阵型前置检查：Bessel 函数模型严格依赖等间距圆周几何
+    if isfield(array, 'type') && ~strcmpi(array.type, 'UCA5')
+        error('doa_uca_mode_music:WrongArrayType', ...
+              ['doa_uca_mode_music 仅支持 UCA 阵型，当前 array.type=''%s''。\n' ...
+               '立体阵请改用 doa_ml / doa_cbf / doa_music / doa_mvdr。'], ...
+              array.type);
+    end
+    if isfield(array, 'is_planar') && ~array.is_planar
+        error('doa_uca_mode_music:NotPlanar', ...
+              '本算法要求阵面在 xy 平面（array.is_planar=true），立体阵不支持');
+    end
+
     N = array.N;
     R_a = array.R_a;
     k = cfg.derived.k;

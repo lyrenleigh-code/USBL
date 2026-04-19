@@ -70,8 +70,8 @@ function [theta_est, phi_est, info] = doa_phase_compare(z, array, cfg, theta_ini
     % 相位差模型: dphi_p = k * d_p^T * u(theta, phi)
     % 其中 u = [sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]^T
     %
-    % 平面阵(所有阵元z=0)时, 基线向量z分量全为零, D_mat秩=2
-    % 因此只能解出 u_x, u_y, 需用 |u|=1 约束恢复 u_z
+    % 平面阵(所有阵元z=0): 基线向量z分量全为零, D_mat秩=2 → 仅解 u_x/u_y + 球约束恢复 u_z
+    % 立体阵(z 列非零): D_mat 满秩 → 直接 3D LS 解 u，再归一化
 
     D_mat = zeros(N_pairs, 3);
     for p = 1:N_pairs
@@ -80,24 +80,49 @@ function [theta_est, phi_est, info] = doa_phase_compare(z, array, cfg, theta_ini
         D_mat(p,:) = pos(i,:) - pos(j,:);
     end
 
-    % 仅取xy分量做最小二乘 (平面阵z列全零, 避免秩亏)
-    D_xy = D_mat(:, 1:2);
-    w_xy = D_xy \ dphi_unwrap;
-
-    % 恢复方向余弦: u_x = w_x/k, u_y = w_y/k
-    ux = w_xy(1) / k;
-    uy = w_xy(2) / k;
-
-    % 利用单位球约束恢复 u_z: u_z = sqrt(1 - ux^2 - uy^2)
-    sin2_theta = ux^2 + uy^2;
-    if sin2_theta > 1
-        % 噪声导致超出单位球, 投影到球面
-        scale = 1 / sqrt(sin2_theta);
-        ux = ux * scale;
-        uy = uy * scale;
-        uz = 0;
+    % 判断是否平面阵：优先读 array.is_planar 标志，否则检查 z 列是否全零（容差 0.1 mm）
+    if isfield(array, 'is_planar')
+        is_planar = array.is_planar;
     else
-        uz = sqrt(1 - sin2_theta);  % 正值: 目标在阵法线方向(下方)
+        is_planar = max(abs(pos(:,3) - pos(1,3))) < 1e-4;
+    end
+
+    if is_planar
+        % 平面阵：xy 最小二乘 + 球约束恢复 u_z
+        D_xy = D_mat(:, 1:2);
+        w_xy = D_xy \ dphi_unwrap;
+        ux = w_xy(1) / k;
+        uy = w_xy(2) / k;
+        sin2_theta = ux^2 + uy^2;
+        if sin2_theta > 1
+            % 噪声导致超出单位球, 投影到球面
+            scale = 1 / sqrt(sin2_theta);
+            ux = ux * scale;
+            uy = uy * scale;
+            uz = 0;
+        else
+            uz = sqrt(1 - sin2_theta);  % 正值: 目标在阵法线方向(下方)
+        end
+    else
+        % 立体阵：3D 最小二乘直解 + 归一化
+        % u_unnorm = (D^T D)^-1 D^T dphi / k，再除以模长强制单位球
+        w = D_mat \ dphi_unwrap;
+        u_unnorm = w / k;
+        u_norm = norm(u_unnorm);
+        if u_norm < eps
+            warning('doa_phase_compare:ZeroNorm', ...
+                    '3D LS 解模长为 0，可能全部相位差为 0 或 D_mat 奇异');
+            ux = 0; uy = 0; uz = 1;  % 回退阵法线
+        else
+            u_norm_vec = u_unnorm / u_norm;
+            ux = u_norm_vec(1);
+            uy = u_norm_vec(2);
+            uz = u_norm_vec(3);
+            % 强制 u_z >= 0（目标在阵法线方向下方的约束；若 uz<0 说明粗估解模糊错）
+            if uz < 0
+                uz = -uz; ux = -ux; uy = -uy;
+            end
+        end
     end
 
     u_est = [ux; uy; uz];

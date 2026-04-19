@@ -1,5 +1,138 @@
 # Wiki 操作日志
 
+## 2026-04-19
+
+- **raw 摄入**（1 项）：`raw/assets/五元超短换能器.pdf` → `source-summaries/five-element-transducer-assembly-drawing-vA.md`
+  - 供应商：江苏水声技术有限公司（2026-04-15 制图，版本 A）
+  - 整机：Φ204 外径 / Φ160 ±0.10 安装法兰 / 总高 233 mm / 质量 5.26 kg
+  - 关键精度：Φ130 h7（0/-0.036）中央 Hub / 0.05 mm 平面度基准
+  - 接口：顶部 6×M5 深 7 + 底部 6×M3 深 6（均布）
+  - **⚠️ 重要澄清点**：图纸 3D 视图显示**笼式立体阵**（中央 1 + 外围 4 立柱 + 双盘支撑），与 CLAUDE.md "平面五元均匀圆阵 UCA（d=20cm）" 陈述可能不一致；水听器中心标注 "80 ±0.10" 与 "110 ±0.10" 两组，几何含义待确认
+  - **对 spec 的影响**：H1 尺寸约束（φ40×80 mm 单元）可能与实际立柱式布置不符；H2 spec 的 d=20cm ±0.5 公差应细化为本图的分区 ±0.10 精度
+  - **对专利候选 03（UCA ML DOA）的影响**：权要 3 / 8 限定的阵列参数与供应商图纸相关；"江苏水声技术有限公司" 应加入专利检索申请人关键词
+  - 新建 `source-summary` 明确列出待澄清清单 + 对 CLAUDE.md / H1 / H2 / concepts/usbl-positioning / 专利 03 的影响
+
+- **raw 摄入**（第 2 项）：`raw/assets/USBL水声定位基阵260102-1.pdf` + `...260102-2.pdf` → `source-summaries/neub-816-test-report-260102.md`
+  - 产品型号：**NeUB-816**（两样机 260102-1 / 260102-2）
+  - 测试日期：2026-01-24（测试）/ 2026-01-25（报告）
+  - 测试标准：GB/T 7965-2002《声学 水声换能器测量》
+  - 9 项电声测试（电导/电纳、灵敏度、指向性、一致性等）
+  - **🔴 重大不一致 1**：工作频率实为 **12 kHz**（USBL 项目一直假设 10 kHz）；9 项测试均在 12 kHz 频点
+  - **🔴 重大不一致 2**：**立体阵 confirmed**——垂直指向性曲线非对称（180° 方向有凹陷），直接佐证工程图的"4 立柱 + 中央"立体阵结构，**证伪"平面 UCA"假设**
+  - **🔴 M2 spec 超目标**：相位残差实测 ±3.6°（两样机最大值），M2 spec 目标 ≤1°（差 3.6×）；幅度残差 ±0.5 dB（spec ≤0.3 dB，差 1.7×）
+  - **H1 灵敏度超 spec**：实测 -200 dB，spec 目标 -190 dB（优于 10 dB）
+  - **H1 尺寸描述有误**：spec 写"φ40×80 mm 单元"，报告测的是**阵列整体 5 通道**
+  - 含完整的通道校正基线数据（5 通道 × 幅度 + 相位），可直接用作 M2 软件校正表
+  - 对 CLAUDE.md / usbl_config.m / H1 / H2 / M2 / concepts/usbl-positioning / 专利候选 03 全部有影响，详见 source-summary
+
+---
+
+## 2026-04-17
+
+- **误差测算重跑**（基于架构图 `docs/usbl-architecture.html`）：
+  - 跑 `simulation/run_error_budget.m`，结果存 `simulation/error_budget_fresh.mat`
+  - 架构图角度预算与实测全部对齐（DOA 0.290°/航向 0.100°/横纵摇 0.028°/M3 0.050°/M1 0.043°/M2 0.036°）
+  - 10 km 总误差 56.3 m (0.56%R)，满足 1%R 指标，余量 44%
+  - 发现：100 m 处 GPS(2m) 成地板项，相对误差 2.02%R → 建议短距用 DGPS
+  - 发现：10 km DOA(CRB) 已压到 0.290° 预算上限，SNR 再降即崩 → 保留 ≥0.05° 余量
+- **raw 摄入**（2 项）：
+  - `raw/notes/usbl-area-knowledge.md` → `topics/usbl-frontiers-2020-2025.md`（2020–2025 前沿补充，不重复已有 9 篇综述）
+    - 关键对项目影响：Raspi2USBL 是 A4 逆变换的**开源参考实现**（核心阻塞参考）
+    - WCS-USBL / LS-ESPRIT / 稀疏自适应作为 A2 升级候选
+    - 两步修正法 / 紧耦合现场 SVP 作为 A3 极端剖面修复路径
+    - IMM-UKF / SVS / ANFIS 作为 A6 + M3 选型池
+  - `raw/repos/USBL连续定位鲁棒处理信号级仿真系统技术说明.docx` → `source-summaries/usbl-continuous-robust-sim-manual.md`
+    - 五元四棱锥（与项目 UCA 圆阵不同，TDOA 几何矩阵需重推）
+    - 首帧粗捕获 + 三级门控 + Hampel 后处理 → 可直接采纳到 S1（P0）
+    - 动态门限 + 主次峰比 + 多通道联合检测 → A1 鲁棒性增强（P0）
+    - TDOA-LS 作为 ML 的快速预估层（A2 双层架构，P1）
+    - 承认未解决的 6 点与项目 [[S1]]/[[A5]]/[[A6]] 空白**高度吻合**
+- 新增 `scripts/docx2md.py`（python-docx 驱动，供后续 raw/*.docx 摄入复用）
+- **raw 摄入续（第 3 份）**：`raw/repos/USBL试验方案.docx` → `source-summaries/usbl-trial-plan.md`
+  - 六阶段试验流程（岸上 → 水池静态 → 水池相位补偿 → 湖上静态 → 湖上动态+校准 → 海上+UUV）
+  - 覆盖 M3/M4/M5，**M6 深海 10 km 未覆盖** → 需补独立海试方案
+  - 阶段 4 两段式闭环（补偿前/中/后）直接作为 [[M3 安装偏差校准]] 验证 SOP
+  - 阶段 2 相位补偿方法论直接作为 [[M2 电声一致性标定]] 验证协议
+  - 六阶段骨架可直接落地到当前 🔴 draft 状态的 [[S2 试验平台]] spec
+  - **raw/ 下全部 3 份未处理文档摄入完毕**
+- **新建 S1 改进 plan** `plans/S1.md`：
+  - 8 任务（A–H）：MC 框架 / 场景库 / 信号级鲁棒 / 三级门控 / 后处理 / 误差注入 / 报告生成 / 多径
+  - 5 sprint 切分（S1.1–S1.5，总 4 周 + 独立多径）
+  - 整合今日新入库 [[usbl-continuous-robust-sim-manual]] 的首帧粗捕获 + 三级门控 + Hampel 后处理
+  - 场景参数锚定 [[usbl-trial-plan]] 六阶段
+  - 风险条：A4 阻塞下 S1 先跑正向 USBL 作 MC 基线，iUSBL 等 A4 破阻塞后接入
+  - 7 项跨模块接口变更记录（A1/A2/A3/M1/M2/M3 spec 需加入对应验收）
+- **Raspi2USBL 开源评估** `explorations/raspi2usbl-evaluation.md`（为 [[A4 iUSBL 逆变换]] 破阻塞）：
+  - 拉取 arXiv 2511.06998 + GitHub ethanjinhuang/Raspi2USBL 的 doa.h / tof.h
+  - 关键发现：**Raspi2USBL 不解 A4 的核心问题** — 它用压力传感器退化到"1D 水平 + 外部深度"，项目需要 2D DOA → 3D 位置 + Jacobian
+  - 阵列对比：6 元 UCA R=7.5cm d/λ=0.50（无相位模糊）vs 项目 5 元 R=17cm d/λ=1.33（有相位模糊）
+  - 验证距离 1.3 km（项目 10 km，差一个量级）
+  - **GPL-3.0 许可** → 不能直接移植代码，只能学思路
+  - **结论**：良好"路径可行性证明"但不是现成方案；A4 spec 需补全显式逆变换 + Jacobian
+- **详细技术方案 Word 生成** `docs/USBL技术方案-v1.0.docx`：
+  - 11 章完整技术方案（17 320 字符 / 387 段 / 18 表 / 60.8 KB）
+  - 章节：概述 / 系统方案 / 算法 A1-A6 / 硬件 H1-H6 / 校准 M1-M5 / 误差预算 / 仿真 S1 / 试验 / 路线图 / 风险 / 参考文献
+  - 核心产出：A4 显式逆变换方程 + Jacobian 推导、10 km 误差预算实测表、5 Sprint S1 实施计划、六阶段试验矩阵、11 项算法 + 4 项硬件风险
+  - 生成脚本 `scripts/gen_tech_spec.py`（python-docx，可复用）
+  - 参考文献 42 条：9 篇项目中文学位论文 + 15 篇经典 + 14 篇 2020–2025 前沿 + 3 篇内部 + 项目内部产物
+  - **整合**今日全部材料：架构图 / 误差测算 / 前沿综述 / 连续仿真方案 / 试验方案 / Raspi2USBL 评估 / spec / plan
+- **详细技术方案 v2.0 实施细则** `docs/USBL技术方案-v2.0-实施细则.docx`：
+  - **11 章 / 509 段 / 15 表 / 30 318 字符 / 64.8 KB**（比 v1.0 翻倍）
+  - 每个核心模块按固定六节结构：① 实施步骤 / ② 接口定义 / ③ 配置参数 / ④ 代码骨架 / ⑤ 验收方法 / ⑥ 常见坑与应对
+  - **A4 iUSBL 逆变换**最详：完整数学推导（对 θ/φ/R/η_att/η_inst/p_b 六维 Jacobian）+ 3D→11D 协方差传播 + MATLAB 骨架 + 数值 Jacobian 验证方法 + Plan B 降级
+  - **A1–A3 代码骨架可直接用**：gen_lfm / matched_filter_lfm / doa_ml / ray_trace（含迭代保护）
+  - **S1 5 Sprint 任务清单**：每 Sprint 的文件列表、接口、验收
+  - **M1/M2/M3 三份 SOP**：水池工况矩阵、数据处理、验收阈值
+  - **阶段 0–5 试验 SOP**：单工况步骤、批量脚本、验收
+  - **故障排查手册**：11 个 Q&A（算法 / 硬件 / 试验）
+  - **符号表**：19 个缩写 + 16 个数学符号
+  - 生成脚本 `scripts/gen_impl_guide.py`（可复用迭代）
+- **A4 iUSBL 逆变换完整实现 — P0 核心阻塞破了** ✅
+  - 新增 `simulation/core/iusbl_inverse.m`（核心函数 + 11 维 Jacobian + 协方差传播）
+  - 新增 `simulation/core/skew_matrix.m`（反对称矩阵工具）
+  - 新增 `simulation/tests/test_a4_inverse.m`（6 case 单元测试）
+  - 新增 `simulation/tests/test_a4_jacobian_numerical.m`（有限差分验证 Jacobian）
+  - 新增 `simulation/run_a4_validation.m`（5 Part 端到端验证主脚本）
+  - **跑通 MATLAB R2025b 全部 6 case 通过**，数值 Jacobian 相对误差 4.13e-11
+  - **抓到真实 bug**：J_att / J_inst 符号推反（`R_att(η) = (I − [η]_×) R_att_0` 约定下需 **−**skew(R·v)）
+  - 修复后：MC N=500 实测/预测 = 0.966，正反变换闭环误差 1.41e-12 m
+  - 10 km 处位置 σ = 61 m（0.616%R），与早上误差预算完全一致
+  - A4 spec 状态：🟡 → 🟢（核心验收项全通过，TODO.md + spec 同步）
+  - **经验沉淀**：凡涉及旋转扰动的 Jacobian，必须用有限差分做数值验证 — 这是 A4 破阻塞的关键方法论，可 promote 到 Hub
+- **A3 ray_trace 重构 — 第二个 P0 阻塞破了** ✅
+  - 重写 `simulation/core/ray_trace.m`（由原简陋版升级到含折返点处理 + 迭代保护 + 兜底降级）
+  - 新增 `simulation/tests/test_a3_ray_trace.m`（8 case：常声速 / 线性梯度 / 强梯度 / 深海声道 / 极端锯齿 / 输入错误 / 深度超限）
+  - **MATLAB 跑通 8/8 case 全部通过**
+  - 关键修复：
+    - 折返点 (turning point) 显式识别：解 c(z_turn)=1/p 推进到 turn 后反转方向
+    - 迭代保护：n_layers_max=500，每层 Δθ ≤ 5° 否则细分
+    - 数值稳定 dt 公式：ln[c2·(1+sinθ1)/c1·(1+sinθ2)]/g 替代原 log(tan)
+    - 兜底降级：追踪发散时退回"直线+平均声速"，quality_flag='degraded'
+    - quality struct 输出：flag/n_layers/n_turns/c_eff/message
+  - A3 spec 状态：🟡 (极端剖面🔴) → 🟢 8 case 通过
+- **A5 multi_buoy_fuse 完整实现** ✅
+  - 新增 `simulation/core/multi_buoy_fuse.m`（加权 LS + 迭代 leave-one-out χ² 剔除 + Huber/Tukey 鲁棒化 + GDOP）
+  - 新增 `simulation/tests/test_a5_fuse.m`（6 case：2/4 潜标正常 / 野值剔除 / Huber 抗 20% 野值 / 共线退化 / 潜标不足）
+  - **MATLAB 跑通 6/6 case 全部通过**
+  - Huber 鲁棒化下 20% 野值污染时误差 0.39m vs 无鲁棒 9.85m
+  - 关键设计：单次 χ² 会被野值污染 p_init → 改为迭代 leave-one-out（每轮剔最大 chi2 一个）
+- **A3 + A4 + A5 集成验证** ✅
+  - 新增 `simulation/run_chain_validation.m`（4 潜标 + 深海 SVP + MC N=100）
+  - **集成测试 MC 100% 通过率**（R=5080m, 误差 RMS 12.32m = 0.24%R，远优于 1%R 指标）
+  - 融合 vs 单潜标改善 2.2×（PDOP 11.60m vs 单潜标 σ~27m）
+  - 野值注入测试：潜标 3 偏 15° 被正确剔除
+- **项目状态跃升**（2026-04-17 end of day）：
+  - P0 核心阻塞 3 项：A4 ✅ + A3 ✅ + S1 🟡（仅剩 MC 框架待做）
+  - 算法侧 6 模块：A1 🟡, A2 🟡, A3 🟢, A4 🟢, A5 🟢, A6 🔴
+  - 🟢 模块数：0 → **3**
+- **v3.0 周级施工指南** `docs/USBL技术方案-v3.0-周级施工指南.docx`：
+  - 547 段 / 9 表 / 18.6k 字符 / 56.6 KB
+  - 覆盖 Phase 1 剩余 13 周（W0 准备 → W12 M1+M2 里程碑验收）
+  - 每周固定结构：周目标 / 上游输入 / 任务清单 / 产出物 / 验收方法 / 坑位预警 / 参考实现位置
+  - 原则：代码（A3/A4/A5 已实现）作参考答案，指南里**明确禁止直接照抄**
+  - 附录 A 参考实现使用禁忌与流程；附录 B 周报/中检/坑位模板；附录 C 风险与应急；附录 D Phase 2 备忘
+  - 生成脚本 `scripts/gen_weekly_guide.py` 可复用
+
 ## 2026-04-15
 
 - **架构整理方案 1 落地**：specs/active/ 分 A/H/M/S 四个子目录，19 张 spec 卡按线归位
